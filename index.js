@@ -23,13 +23,13 @@ client.on('ready', () => {
     console.log('✅ Bot Online and Ready!');
 });
 
-client.on('message', async (msg) => {
+// message වෙනුවට message_create භාවිත කිරීම
+client.on('message_create', async (msg) => {
     try {
-        // ලැබෙන සෑම මැසේජ් එකක්ම ලොග්ස් වල පෙන්වීමට
-        console.log(`[MSG] From: ${msg.from} | Body: ${msg.body} | Type: ${msg.type}`);
+        console.log(`[MSG_CREATE] From: ${msg.from} | Body: ${msg.body} | Type: ${msg.type}`);
 
         // !bansticker විධානය පරීක්ෂා කිරීම
-        if (msg.body.trim() === '!bansticker' && msg.hasQuotedMsg) {
+        if (msg.body && msg.body.trim() === '!bansticker' && msg.hasQuotedMsg) {
             const quotedMsg = await msg.getQuotedMessage();
             console.log('Quoted message type:', quotedMsg.type);
             
@@ -50,8 +50,8 @@ client.on('message', async (msg) => {
             }
         }
 
-        // ස්ටිකරයක් පැමිණි විට බෑන් කර ඇත්දැයි පරීක්ෂා කර මකා දැමීම
-        if (msg.type === 'sticker') {
+        // ස්ටිකරයක් පැමිණි විට බෑන් කර ඇත්දැයි පරීක්ෂා කර මකා දැමීම (තමන් එවූ ඒවා හැර අනෙක් ඒවා)
+        if (msg.type === 'sticker' && !msg.fromMe) {
             const media = await msg.downloadMedia();
             if (media && media.data) {
                 const buffer = Buffer.from(media.data, 'base64');
