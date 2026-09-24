@@ -20,14 +20,19 @@ client.on('qr', (qr) => {
 });
 
 client.on('ready', () => {
-    console.log('✅ Bot Online!');
+    console.log('✅ Bot Online and Ready!');
 });
 
 client.on('message', async (msg) => {
     try {
-        // 1. Sticker එක Ban කිරීම සඳහා !bansticker command එක භාවිතය
-        if (msg.body === '!bansticker' && msg.hasQuotedMsg) {
+        // ලැබෙන සෑම මැසේජ් එකක්ම ලොග්ස් වල පෙන්වීමට
+        console.log(`[MSG] From: ${msg.from} | Body: ${msg.body} | Type: ${msg.type}`);
+
+        // !bansticker විධානය පරීක්ෂා කිරීම
+        if (msg.body.trim() === '!bansticker' && msg.hasQuotedMsg) {
             const quotedMsg = await msg.getQuotedMessage();
+            console.log('Quoted message type:', quotedMsg.type);
+            
             if (quotedMsg.type === 'sticker') {
                 const media = await quotedMsg.downloadMedia();
                 if (media && media.data) {
@@ -36,12 +41,16 @@ client.on('message', async (msg) => {
                     
                     bannedHashes.add(hash);
                     await msg.reply('✅ Sticker banned successfully!');
-                    console.log('Banned Sticker Hash:', hash);
+                    console.log('🔒 Banned Sticker Hash Added:', hash);
+                } else {
+                    await msg.reply('❌ Could not download sticker media.');
                 }
+            } else {
+                await msg.reply('❌ Please reply to a sticker!');
             }
         }
 
-        // 2. ගෘප් එකක Banned කළ ස්ටිකරයක් දැමූ විට Auto-delete කිරීම
+        // ස්ටිකරයක් පැමිණි විට බෑන් කර ඇත්දැයි පරීක්ෂා කර මකා දැමීම
         if (msg.type === 'sticker') {
             const media = await msg.downloadMedia();
             if (media && media.data) {
@@ -51,11 +60,13 @@ client.on('message', async (msg) => {
                 if (bannedHashes.has(hash)) {
                     await msg.delete(true);
                     console.log('🗑️ Banned sticker deleted automatically!');
+                } else {
+                    console.log('ℹ️ Safe sticker hash:', hash);
                 }
             }
         }
     } catch (error) {
-        console.error('Error handling message:', error);
+        console.error('❌ Error in message handler:', error);
     }
 });
 
